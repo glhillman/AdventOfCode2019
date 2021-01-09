@@ -16,13 +16,19 @@ namespace Day24
 
         public Day24()
         {
-            LoadData();
-            DumpGrid("Initial Load", _grid1);
         }
 
         public void Part1()
         {
-            bool masterGrid1 = true;
+            LoadData();
+
+            List<char[,]> grids = new List<char[,]>();
+            grids.Add(_grid1);
+            grids.Add(_grid2);
+
+            int srcIndex = 0;
+            int dstIndex = 1;
+
             int gridNum = 0;
             HashSet<int> gridNums = new HashSet<int>();
 
@@ -30,20 +36,55 @@ namespace Day24
             {
                 gridNums.Add(gridNum); // assume 0, first state, will not occur
 
-                if (masterGrid1)
-                {
-                    gridNum = ApplyRules(_grid1, _grid2);
-                }
-                else
-                {
-                    gridNum = ApplyRules(_grid2, _grid1);
-                }
-                masterGrid1 = !masterGrid1; // flip it
+                gridNum = ApplyRules(grids[srcIndex], grids[dstIndex]);
+
+                srcIndex = srcIndex == 1 ? 0 : 1;
+                dstIndex = dstIndex == 1 ? 0 : 1;
             }
 
             long rslt = BioDiversityRating(gridNum);
 
             Console.WriteLine("Part1: {0}", rslt);
+        }
+
+        public void Part2()
+        {
+            // other than LoadData & this method, all of part2 logic is in the RecursiveGrid class
+            LoadData();
+
+            // start with the loaded grid, an inner, and an outer grid
+            // kind of a clutzy startup, but heck
+            RecursiveGrid innerinner = new RecursiveGrid(1, RecursiveGrid.InitializeGrid(new char[5, 5]));
+            RecursiveGrid rgridInner = new RecursiveGrid(0, _grid1);
+            rgridInner.InnerGrid = innerinner;
+            innerinner.OuterGrid = rgridInner;
+            RecursiveGrid rgrid = new RecursiveGrid(-1, rgridInner);
+            RecursiveGrid tmp;
+
+            for (int i = 0; i < 200; i++)
+            {
+                bool needOuter = rgrid.ApplyRules();
+                tmp = rgrid;
+                while (tmp != null)
+                {
+                    tmp.SwitchSrcAndDst();
+                    tmp = tmp.InnerGrid;
+                }
+                if (needOuter)
+                {
+                    rgrid = new RecursiveGrid(rgrid.Depth - 1, rgrid);
+                }
+            }
+
+            int bugCount = 0;
+            tmp = rgrid;
+            while (tmp != null)
+            {
+                bugCount += tmp.CountBugs();
+                tmp = tmp.InnerGrid;
+            }
+
+            Console.WriteLine("Part2: {0}", bugCount);
         }
 
         private int ApplyRules(char[,] src, char[,] dst)
@@ -114,8 +155,6 @@ namespace Day24
                 }
             }
 
-            DumpGrid("Reconstituted", grid);
-
             return grid;
         }
 
@@ -135,14 +174,6 @@ namespace Day24
             }
 
             return rating;
-        }
-
-        public void Part2()
-        {
-
-            long rslt = 0;
-
-            Console.WriteLine("Part2: {0}", rslt);
         }
 
         private void DumpGrid(string label, char[,] grid)
