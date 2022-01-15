@@ -37,6 +37,7 @@ namespace Day15
         private int _oxyX = -1;
         private int _oxyY = -1;
         private char[,] _grid;
+        private Dictionary<(int x, int y), char> _dgrid;
         private int _steps = 0;
 
         private int _minX = int.MaxValue;
@@ -49,6 +50,7 @@ namespace Day15
         {
             LoadData();
             _grid = new char[SIZE, SIZE];
+            _dgrid = new Dictionary<(int x, int y), char>();
             for (int x = 0; x < SIZE; x++)
                 for (int y = 0; y < SIZE; y++)
                     _grid[x, y] = ' ';
@@ -89,6 +91,7 @@ namespace Day15
             else if (value == HitWall)
             {
                 _grid[_currX, _currY + 1] = '#';
+                _dgrid[(_currX, _currY + 1)] = '#';
                 Turn(Left);
                 _anchorX = _currX;
                 _anchorY = _currY;
@@ -107,6 +110,7 @@ namespace Day15
             if (value != 99)
             {
                 TraverseNextStep(value);
+                DumpGrid(value.ToString());
             }
             else
             {
@@ -169,15 +173,19 @@ namespace Day15
                     {
                         case North:
                             _grid[_currX, _currY - 1] = '#';
+                            _dgrid[(_currX, _currY - 1)] = '#';
                             break;
                         case South:
                             _grid[_currX, _currY + 1] = '#';
+                            _dgrid[(_currX, _currY + 1)] = '#';
                             break;
                         case East:
                             _grid[_currX + 1, _currY] = '#';
+                            _dgrid[(_currX + 1, _currY)] = '#';
                             break;
                         case West:
                             _grid[_currX - 1, _currY] = '#';
+                            _dgrid[(_currX - 1, _currY)] = '#';
                             break;
                     }
                     Turn(Left);
@@ -240,7 +248,9 @@ namespace Day15
                     y--; // look North
                     break;
             }
-            return (_grid[x, y] == '#');
+            char value;
+            return _dgrid.TryGetValue((x, y), out value) ? value == '#' : false;
+            //return (_grid[x, y] == '#');
         }
 
         int _dumpNum = 0;
@@ -260,15 +270,20 @@ namespace Day15
             {
                 for (int x = _minX-1; x <= _maxX + 1; x++)
                 {
+                    char value;
+                    if (_dgrid.TryGetValue((x,y), out value) == false)
+                    {
+                        value = ' ';
+                    }
                     if (x == _anchorX && y == _anchorY)
                     {
                         Console.Write('X');
                     }
-                    else if ((x == _minX - 1 || x == _maxX + 1) && _grid[x, y] != '#') 
+                    else if ((x == _minX - 1 || x == _maxX + 1) && value != '#') //_grid[x, y] != '#') 
                     {
                         Console.Write('|');
                     }
-                    else if ((y == _minY-1 || y == _maxY+1) && _grid[x,y] != '#')
+                    else if ((y == _minY-1 || y == _maxY+1) && value != '#') //_grid[x,y] != '#')
                     {
                         Console.Write('-');
                     } 
@@ -282,7 +297,7 @@ namespace Day15
                     }
                     else
                     {
-                        Console.Write(_grid[x, y]);
+                        Console.Write(value); // _grid[x, y]);
                     }
                 }
                 Console.WriteLine();

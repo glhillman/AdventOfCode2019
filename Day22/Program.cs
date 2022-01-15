@@ -1,24 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿// See https://aka.ms/new-console-template for more information
+using DayClass;
 
-namespace Day22
-{
-    class Program
-    {
-        static void Main(string[] args)
-        {
+Day22 day = new Day22();
 
-            Day22 day22 = new Day22();
+day.Part1();
+day.Part2();
 
-            day22.Part1();
-            day22.Part2();
-
-            Console.Write("Press Enter to continue...");
-            Console.ReadLine();
-
-        }
-    }
-}
+Console.Write("Press Enter to continue...");
+Console.ReadLine();
